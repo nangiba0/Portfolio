@@ -1,0 +1,27 @@
+import requests
+API_KEY = "3359635e58aa81a2c43ed9c02643d3c7"
+url= f"https://api.themoviedb.org/3/movie/popular?api_key=3359635e58aa81a2c43ed9c02643d3c7&language=en-US&page=1"
+response= requests.get(url) # this extracts data bc it redirects to the URL
+data= response.json()   #this gets the scripture from the url. 
+
+import pandas as pd   # type: ignore
+df = pd.DataFrame(data['results'])    #this organizes the data from 'results' that is extracted from .json
+
+
+from sqlalchemy import create_engine
+engine = create_engine("postgresql+psycopg2://nangi:yourpassword@localhost:5432/moviesdb")
+df.to_sql('movies', engine, if_exists='replace', index=False)
+
+df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
+df = df.dropna(subset=['release_date', 'title'])
+df.to_sql('movies_clean', engine, if_exists='replace', index=False)
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+query = "SELECT EXTRACT(YEAR FROM release_date) AS year, AVG(vote_average) as avg_rating FROM movies_clean GROUP BY year ORDER BY year;"
+df_sql = pd.read_sql(query, engine)
+
+sns.lineplot(data=df_sql, x='year', y='avg_rating')
+plt.title("Average Movie Rating by Year")
+plt.show()
