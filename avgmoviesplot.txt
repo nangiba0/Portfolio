@@ -24,4 +24,5 @@ df_sql = pd.read_sql(query, engine)
 
 sns.lineplot(data=df_sql, x='year', y='avg_rating')
 plt.title("Average Movie Rating by Year")
-plt.show()
+plt.show() # will organize raw data into something managable to read and understand. 
+
